@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<head>
+<meta charset="utf-8">
+<title>チャットルーム一覧</title>
+</head>
+<body>
+<h2 th:inline="text">ようこそ [[${#httpServletRequest.remoteUser}]] さん!</h2>
+<h3>SseEmitterとServer-Sent Eventsによるチャットルーム一覧</h3>
+<ul>
+<li th:each="chatroom : ${chatrooms}" th:object="${chatroom}">
+<a th:href="@{'/sse-chatroom/' + *{id} + '/'}" th:inline="text">[[*{name}]]</a>
+</li>
+</ul>
+
+<h3>チャットルーム作成</h3>
+<form th:action="@{/sse-chatroom/create}" method="post">
+チャットルームの名前: <input type="text" name="name"><br>
+<input type="submit" value="作成"></form>
+
+<hr>
+<div>
+<form th:action="@{/logout}" method="post"><input type="submit" value="ログアウト"></form>
+<ul>
+<li><a th:href="@{/}">TOPに戻る</a></li>
+</ul>
+</div>
+</body>
+</html>

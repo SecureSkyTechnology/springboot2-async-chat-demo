@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<head>
+<meta charset="utf-8">
+<title th:inline="text">チャットルーム : [[${chatroom.name}]]</title>
+</head>
+<body>
+<h2 th:inline="text">ようこそ [[${#httpServletRequest.remoteUser}]] さん!</h2>
+<h3 th:inline="text">SseEmitterとServer-Sent Eventsによるチャットルーム : [[${chatroom.name}]]</h3>
+
+<form th:action="@{'/sse-chatroom/' + ${chatroom.id} + '/post'}" method="post" id="post-message-form">
+メッセージ: <input type="text" name="message" value="" size="60">&nbsp;<button id="post-message" onclick="return false;">送信</button>
+</form>
+
+<br>
+<div>
+メッセージログ：(10分間隔で在室確認のため自動的に再入室が行われます)
+<textarea id="ta-out" rows="40" cols="150"></textarea>
+</div>
+
+<hr>
+<div>
+<form th:action="@{/logout}" method="post"><input type="submit" value="ログアウト"></form>
+<ul>
+<li><a th:href="@{/sse-chatroom}">チャットルーム一覧に戻る</a></li>
+<li><a th:href="@{/}">TOPに戻る</a></li>
+</ul>
+</div>
+</body>
+<script>
+function talog(msg) {
+	const curr = document.querySelector('textarea#ta-out').value;
+	document.querySelector('textarea#ta-out').value = curr + '\n' + msg;
+}
+function talogEvent(event) {
+	talog(event.data);
+}
+
+// ページを開いた時に自動で入室し、EventSourceを生成してSSEの受信を開始する。
+window.addEventListener('DOMContentLoaded', function(e) {
+	const eventSource = new EventSource('./enter', { withCredential: true });
+	eventSource.onopen = function() {
+		console.log('eventSource open');
+	};
+	eventSource.onerror = function() {
+		console.log('eventSource error');
+	};
+	eventSource.onmessage = function(event) {
+		talogEvent(event);
+	};
+	eventSource.addEventListener('emitter-id', function(event) {
+		window.emitterId = event.data;
+		console.log('entered to chatroom with emitterId=' + window.emitterId + '.');
+	}, false);
+	window.currentEventSource = eventSource;
+});
+
+// ウインドウを閉じたり別画面に遷移する際に自動で退室する。
+// (画面遷移ではちゃんと動くんだけど、タブ/ウインドウを閉じる場合は動かない・・・デモなのでとりあえずスルー)
+window.addEventListener('beforeunload', function() {
+	if (window.emitterId) {
+		fetch('./exit?emitterId=' + window.emitterId, {
+			credentials: 'same-origin',
+		});
+		console.log('exit from chatroom with emitterId=' + window.emitterId + '.');
+	}
+	if (window.currentEventSource) {
+		window.currentEventSource.close();
+		console.log('eventSource closed.');
+	}
+})
+
+document.querySelector('button#post-message').addEventListener('click', function(event) {
+	event.stopPropagation();
+	const message = document.querySelector('input[name=message]').value;
+	const _csrf = document.querySelector('input[name=_csrf]').value;
+	const urlEncodedMap = new URLSearchParams();
+	urlEncodedMap.set('message', message);
+	urlEncodedMap.set('_csrf', _csrf);
+	const url = document.querySelector('form#post-message-form').action;
+	fetch(url, {
+		method: 'POST',
+		credentials: 'same-origin',
+		headers: {
+			'Content-Type': 'application/x-www-form-urlencoded',
+		},
+		body: urlEncodedMap,
+	});
+	console.log('send [' + message + ']`with _csrf:' + _csrf + ' to ' + url);
+	return false;
+});
+</script>
+</html>

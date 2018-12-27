@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<head>
+<meta charset="utf-8">
+<title>Server-Sent Eventsのデモ</title>
+</head>
+<body>
+<h2>Server-Sent Eventsのデモ</h2>
+<p>
+<code>/sse-demo/emit</code>エンドポイントに接続し、SseEmitterからの出力を表示します。
+</p>
+<form>
+<table>
+<tr><th>カウントアップ最大値</th><td><input type="number" name="numOfCount" value="10" step="1" min="1" max="999"></td></tr>
+<tr><th>何秒おきにカウントアップするかのスリープ秒数</th><td><input type="number" name="intervalSec" value="1" step="1" min="0" max="999"></td></tr>
+<tr><th>サーバ側のタイムアウト秒数</th><td><input type="number" name="timeoutSec" value="0" step="1" min="0" max="999"></td></tr>
+<tr><th>カウントがこの値に到達したら div by zero を発生させる</th><td><input type="number" name="errval" value="999" step="1" min="1" max="999"></td></tr>
+</table>
+<button id="connect-to-server" onclick="return false;">接続</button>
+ &nbsp; 
+ <button id="close-from-server" onclick="return false;">切断</button>
+</form>
+<br>
+<div>
+<textarea id="ta-out" rows="30" cols="100"></textarea>
+</div>
+</body>
+<script>
+function talog(msg) {
+	const curr = document.querySelector('textarea#ta-out').value;
+	document.querySelector('textarea#ta-out').value = curr + '\n' + msg;
+}
+function talogEvent(event) {
+	const eventInfo = {
+		data: event.data,
+		id: event.lastEventId,
+	};
+	talog('event=' + JSON.stringify(eventInfo));
+}
+document.querySelector('button#connect-to-server').addEventListener('click', function(event) {
+	event.stopPropagation();
+	const numOfCount = document.querySelector('input[name=numOfCount]').value;
+	const intervalSec = document.querySelector('input[name=intervalSec]').value;
+	const timeoutSec = document.querySelector('input[name=timeoutSec]').value;
+	const errval = document.querySelector('input[name=errval]').value;
+	const eventSource = new EventSource('./emit?numOfCount=' + numOfCount + '&intervalSec=' + intervalSec + '&timeoutSec=' + timeoutSec + '&errval=' + errval);
+	eventSource.onopen = function() {
+		talog('eventSource open');
+	};
+	eventSource.onerror = function() {
+		talog('eventSource error');
+	};
+	eventSource.onmessage = function(event) {
+		talogEvent(event);
+	};
+	eventSource.addEventListener('count-up', function(event) {
+		talogEvent(event);
+	}, false);
+	window.currentEventSource = eventSource;
+	return false;
+});
+
+document.querySelector('button#close-from-server').addEventListener('click', function(event) {
+	event.stopPropagation();
+	if (window.currentEventSource) {
+		window.currentEventSource.close();
+		talog('eventSource closed.');
+	}
+});
+</script>
+</html>

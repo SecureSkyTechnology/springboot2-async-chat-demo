@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<head>
+<meta charset="utf-8">
+<title>チャットへのログイン</title>
+</head>
+<body>
+<h2>チャットへのログイン</h2>
+
+<div th:if="${param.error}">
+ユーザ名またはパスワードが間違ってます。
+</div>
+<div th:if="${param.logout}">
+ログアウトしました。
+</div>
+
+<div>
+<p>デモなのでユーザ登録は不要です。好きなユーザ名と適当なパスワードでログインできます。</p>
+<form th:action="@{/login}" method="post">
+<table>
+<tr><th>ユーザ名</th><td><input type="text" name="username"></td></tr>
+<tr><th>パスワード</th><td><input type="password" name="password"></td></tr>
+</table>
+<input type="submit" value="ログイン">
+</form>
+</div>
+
+<hr>
+<div>
+<ul>
+<li><a th:href="@{/}">TOPに戻る</a></li>
+</ul>
+</div>
+</body>
+</html>
