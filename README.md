@@ -4,7 +4,7 @@ SpringBoot2.x系で非同期メッセージングを使ったチャットアプ�
 内容:
 
 * 2018-12 : Spring MVC で SseEmitter を使った Server-Sent Events のサンプルを作成。
-* 2019-03 : Spring MVC で WebSocket API を使ったデモを作成。
+* 2019-03 : Spring MVC で WebSocket API を使ったデモを作成。HTTPS有効化のデモ用設定ファイル/キーストア追加。
 
 ## 実行環境
 
