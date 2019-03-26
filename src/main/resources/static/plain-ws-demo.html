@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>Spring Framework 組み込みのWebSocket APIのデモ</title>
+</head>
+<body>
+<h2>Spring Framework 組み込みのWebSocket APIのデモ</h2>
+<p>
+<code>/plain-ws-demo</code>エンドポイントに接続し、シンプルなecho機能とサーバからの非同期送信メッセージを表示します。
+</p>
+<form>
+<table>
+<tr><th>カウントアップ最大値</th><td><input type="number" name="numOfCount" value="10" step="1" min="1" max="999"></td></tr>
+<tr><th>何秒おきにカウントアップするかのスリープ秒数</th><td><input type="number" name="intervalSec" value="1" step="1" min="0" max="999"></td></tr>
+<tr><th>カウントがこの値に到達したら div by zero を発生させる</th><td><input type="number" name="errval" value="999" step="1" min="1" max="999"></td></tr>
+</table>
+<button id="connect-to-server" onclick="return false;">接続</button>
+&nbsp;
+<button id="close-from-server" onclick="return false;">切断</button>
+<br>
+送信メッセージ:
+<input type="text" name="message" value="">
+&nbsp;
+<button id="send-to-server" onclick="return false;">送信</button>
+</form>
+<br>
+<div>
+<textarea id="ta-out" rows="30" cols="100"></textarea>
+</div>
+</body>
+<script>
+function talog(msg) {
+	const curr = document.querySelector('#ta-out').value;
+	document.querySelector('#ta-out').value = curr + '\n' + msg;
+}
+function talogEvent(event) {
+	const eventInfo = {
+		data: event.data,
+		id: event.lastEventId,
+	};
+	talog('event=' + JSON.stringify(eventInfo));
+}
+const endpoint = 'ws://' + location.host + '/plain-ws-demo';
+let websocket = null;
+
+document.querySelector('#connect-to-server').addEventListener('click', function(event) {
+	event.stopPropagation();
+	const numOfCount = document.querySelector('input[name=numOfCount]').value;
+	const intervalSec = document.querySelector('input[name=intervalSec]').value;
+	const errval = document.querySelector('input[name=errval]').value;
+	websocket = new WebSocket(endpoint + '?numOfCount=' + numOfCount + '&intervalSec=' + intervalSec + '&errval=' + errval);
+	websocket.onopen = function(event) {
+		talog('websocket open');
+		console.log(event);
+		websocket.send('hello, websocket');
+	};
+	websocket.onmessage = function(event) {
+		talog('websocket message received: ' + event.data);
+		console.log(event.data);
+	}
+	websocket.onclose = function(event) {
+		talog('websocket close, code=' + event.code);
+		console.log(event);
+		websocket = null;
+	}
+	websocket.onerror = function(event) {
+		talog('websocket error');
+		console.log(event);
+	}
+	return false;
+});
+
+document.querySelector('#close-from-server').addEventListener('click', function(event) {
+	event.stopPropagation();
+	if (websocket) {
+		websocket.close();
+	}
+});
+
+document.querySelector('#send-to-server').addEventListener('click', function(event) {
+	event.stopPropagation();
+	if (websocket) {
+		const msg = document.querySelector('input[name=message]').value;
+		websocket.send(msg);
+	}
+});
+</script>
+</html>
