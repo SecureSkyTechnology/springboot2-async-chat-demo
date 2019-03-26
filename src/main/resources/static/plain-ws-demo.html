@@ -41,7 +41,7 @@ function talogEvent(event) {
 	};
 	talog('event=' + JSON.stringify(eventInfo));
 }
-const endpoint = 'ws://' + location.host + '/plain-ws-demo';
+const endpoint = (location.protocol.startsWith('https') ? 'wss://' : 'ws://') + location.host + '/plain-ws-demo';
 let websocket = null;
 
 document.querySelector('#connect-to-server').addEventListener('click', function(event) {
