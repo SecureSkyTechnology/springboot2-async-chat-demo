@@ -30,7 +30,19 @@ cd springboot2-async-chat-demo/
 ./mvnw package
 
 jarファイルから実行:
-java -jar target/springboot2-async-chat-demo-v20181227.1.jar
+java -jar target/springboot2-async-chat-demo-v201903.26.1.jar
+```
+
+https(自己署名証明書)を有効にして https://localhost:18089/ で起動するには:
+
+```
+java -jar target/springboot2-async-chat-demo-v201903.26.1.jar --spring.config.location=application-https.properties
+```
+
+※ `keystore.p12` は AdoptOpenJDK8 の `keytool` で以下のように生成しています。
+
+```
+keytool -genkeypair -keyalg RSA -dname "CN=test0, OU=ou0, O=org0, L=loc0, S=s0, C=JP" -alias self-signed-cert-t0 -keypass changeit -keystore keystore.p12  -storepass changeit -storetype PKCS12 -validity 3600
 ```
 
 2018-12時点で以下のブラウザで動作確認しています。
