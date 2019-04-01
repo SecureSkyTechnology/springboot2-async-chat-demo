@@ -116,6 +116,12 @@ public class PlainWsDemoHandler extends TextWebSocketHandler {
             return receiveBuilder().match(Tick0.class, tick -> {
                 count++;
                 log.info("tick {}/{}", count, numOfCount);
+                if (!session.isOpen()) {
+                    log.info("websocket session closed from client.");
+                    session.close(CloseStatus.NORMAL);
+                    getContext().stop(getSelf());
+                    return;
+                }
                 try {
                     // カウンタがerrvalに到達したら、div by zero を発生させる。
                     if (errval == count) {
@@ -125,6 +131,7 @@ public class PlainWsDemoHandler extends TextWebSocketHandler {
                     log.info("div/zero => stop");
                     session.close(CloseStatus.SERVER_ERROR);
                     getContext().stop(getSelf());
+                    return;
                 }
                 if (count >= numOfCount) {
                     log.info("tick count max => stop");
