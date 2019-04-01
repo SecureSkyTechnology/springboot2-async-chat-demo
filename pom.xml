@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.secureskytech</groupId>
 	<artifactId>springboot2-async-chat-demo</artifactId>
-	<version>v201903.26.1</version>
+	<version>v201904.1.1</version>
 	<name>springboot2-async-chat-demo</name>
 	<description>sample chat demo applications using asynchronous api with SpringBoot 2.x.</description>
 
